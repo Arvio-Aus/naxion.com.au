@@ -209,6 +209,7 @@ p { margin: 0 0 1em; }
 
 /* ---------------------------------------------------------------- Sections */
 section { padding: 96px 0; }
+section[id] { scroll-margin-top: 72px; }
 .section-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 48px; }
 .section-head h2 { margin: 0; max-width: 680px; }
 .section-head p { margin: 12px 0 0; }
@@ -256,6 +257,8 @@ section { padding: 96px 0; }
 .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
 
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 22px; }
+.product-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .product-grid.cols-3 { grid-template-columns: 1fr; max-width: 480px; } }
 .product-card {
   display: flex;
   flex-direction: column;
@@ -517,6 +520,24 @@ section { padding: 96px 0; }
 .stat-strip strong { display: block; font-family: var(--font-head); font-size: 2.2rem; font-weight: 700; line-height: 1.1; }
 .stat-strip span { color: var(--muted); font-size: 0.9rem; }
 @media (max-width: 800px) { .stat-strip { grid-template-columns: 1fr 1fr; } }
+
+/* ---------------------------------------------------------------- UltraCap sub-brand (teal) */
+.theme-ultracap {
+  --amber: #3dd6c8;
+  --grad: linear-gradient(120deg, #6ff0e2 0%, #1fa7c9 100%);
+}
+.theme-ultracap .btn-primary { color: #00201d; box-shadow: 0 10px 30px -10px rgba(31, 167, 201, 0.6); }
+.theme-ultracap .btn-primary:hover { box-shadow: 0 16px 40px -12px rgba(31, 167, 201, 0.75); }
+.theme-ultracap .hero::before,
+.theme-ultracap .cta::before { background: radial-gradient(closest-side, rgba(61, 214, 200, 0.18), transparent 70%); }
+.theme-ultracap .hero-visual .hv-ring { border-color: rgba(61, 214, 200, 0.25); }
+.theme-ultracap .cta { background: linear-gradient(135deg, #061a1c 0%, #0b1a2a 45%, #0f1729 100%); border-color: rgba(61, 214, 200, 0.25); }
+.theme-ultracap .compare td.hl { background: rgba(61, 214, 200, 0.07); }
+.theme-ultracap .feature:hover { border-color: rgba(61, 214, 200, 0.4); }
+.theme-ultracap .feature .icon { background: rgba(61, 214, 200, 0.1); }
+.theme-ultracap .nav-links .btn, .theme-ultracap .nav-links .btn:hover { color: #00201d; background: var(--grad); }
+.theme-ultracap .checklist li::before { background-color: rgba(61, 214, 200, 0.12); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233dd6c8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E"); }
+.app .checklist { margin-top: 16px; }
 
 /* ---------------------------------------------------------------- Footer */
 .site-footer { border-top: 1px solid var(--line-soft); padding: 64px 0 32px; background: var(--bg-2); margin-top: 40px; }

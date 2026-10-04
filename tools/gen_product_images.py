@@ -51,6 +51,7 @@ def defs():
   <linearGradient id="gCylAmber" x1="0" y1="0" x2="1" y2="0">
     <stop offset="0" stop-color="#B36A00"/><stop offset=".35" stop-color="#FFC93C"/><stop offset=".6" stop-color="#FF9A1A"/><stop offset="1" stop-color="#8A4300"/>
   </linearGradient>
+  <linearGradient id="gTeal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6FF0E2"/><stop offset="1" stop-color="#1FA7C9"/></linearGradient>
   <radialGradient id="gShadow"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
   <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>"""
@@ -75,6 +76,23 @@ def wordmark(x, y, width, color=INK, mark=True):
         f'<g transform="translate({off} 0)" stroke="{color}" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round">'
         '<path d="M0 20V0l16 20V0"/><path d="M28 20 37 0l9 20"/><path d="M58 0l16 20M74 0 58 20"/>'
         '<path d="M86 0v20"/><circle cx="108" cy="10" r="10"/><path d="M130 20V0l16 20V0"/></g></g>'
+    )
+
+
+def uc_wordmark(x, y, width, color=INK):
+    """UltraCap logo (capacitor mark + ULTRACAP wordmark), top-left at x,y in local units."""
+    k = width / 268
+    return (
+        f'<g transform="translate({x:.2f} {y:.2f}) scale({k:.4f}) translate(0 -14)">'
+        '<circle cx="24" cy="24" r="20.4" stroke="url(#gTeal)" stroke-width="3.2" stroke-dasharray="104 24" stroke-linecap="round" fill="none" transform="rotate(-62 24 24)"/>'
+        f'<path d="M10.5 24H18.5M29.5 24H37.5" stroke="{color}" stroke-width="3.2" stroke-linecap="round"/>'
+        '<path d="M19.5 13.5v21" stroke="url(#gTeal)" stroke-width="4.4" stroke-linecap="round"/>'
+        f'<path d="M28.5 13.5v21" stroke="{color}" stroke-width="4.4" stroke-linecap="round"/>'
+        f'<g stroke="{color}" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(62 14)">'
+        '<path d="M0 0v12a8 8 0 0 0 16 0V0"/><path d="M28 0v20h14"/><path d="M52 0h16M60 0v20"/>'
+        '<path d="M78 20V0h9a5.5 5.5 0 0 1 0 11h-9M87 11l7 9"/><path d="M104 20 113 0l9 20"/></g>'
+        '<g stroke="url(#gTeal)" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(62 14)">'
+        '<path d="M150 4A10 10 0 1 0 150 16"/><path d="M160 20 169 0l9 20"/><path d="M188 20V0h9a5.5 5.5 0 0 1 0 11h-9"/></g></g>'
     )
 
 
@@ -323,7 +341,118 @@ def cabinet(W, D, H, model):
     return render(build, b.bbox())
 
 
+TEAL = "#3DD6C8"
+
+
+def uc_pack_front(W, H, px, y=0, label=True):
+    """Front panel of a liquid-cooled 360 V capacitor pack (local units)."""
+    f = [
+        f'<rect x="{W * .015}" y="{y + H * .08}" width="{W * .97}" height="{H * .84}" rx="{px(3)}" fill="url(#gFront)" stroke="#ffffff" stroke-opacity=".08" stroke-width="{px(1)}"/>',
+        # handles
+        f'<rect x="{W * .03}" y="{y + H * .3}" width="{W * .05}" height="{H * .4}" rx="{H * .08}" fill="none" stroke="#9AA6B8" stroke-width="{H * .05}"/>',
+        f'<rect x="{W * .92}" y="{y + H * .3}" width="{W * .05}" height="{H * .4}" rx="{H * .08}" fill="none" stroke="#9AA6B8" stroke-width="{H * .05}"/>',
+        # coolant quick-connectors
+        f'<circle cx="{W * .62}" cy="{y + H * .5}" r="{H * .13}" fill="#0A0F1A" stroke="{TEAL}" stroke-width="{H * .04}"/>',
+        f'<circle cx="{W * .7}" cy="{y + H * .5}" r="{H * .13}" fill="#0A0F1A" stroke="#1FA7C9" stroke-width="{H * .04}"/>',
+        # HV connectors
+        f'<rect x="{W * .77}" y="{y + H * .32}" width="{W * .055}" height="{H * .36}" rx="{px(2)}" fill="#0A0F1A" stroke="{AMBER}" stroke-width="{px(1.2)}"/>',
+        f'<rect x="{W * .845}" y="{y + H * .32}" width="{W * .055}" height="{H * .36}" rx="{px(2)}" fill="#0A0F1A" stroke="#9AA6B8" stroke-width="{px(1.2)}"/>',
+        # status light
+        f'<rect x="{W * .46}" y="{y + H * .44}" width="{W * .1}" height="{H * .12}" rx="{H * .06}" fill="url(#gTeal)" filter="url(#glow)"/>',
+    ]
+    if label:
+        f.append(uc_wordmark(W * .11, y + H * .52, W * .3))
+    return "".join(f)
+
+
+def uc_pack(W, D, H):
+    b = Box(W, D, H)
+
+    def build(px):
+        out = [box_faces(b, px, front="#0B1220", side="url(#gSide)", top="#26354F")]
+        out.append(f'<g transform="{b.front_tf}">{uc_pack_front(W, H, px)}</g>')
+        t = []
+        cols, rows = 5, 9
+        for c in range(cols):
+            for r in range(rows):
+                t.append(
+                    f'<rect x="{W * (.06 + c * .178)}" y="{D * (.05 + r * .1)}" width="{W * .15}" height="{D * .08}" rx="{px(2)}" '
+                    f'fill="#ffffff" fill-opacity=".04" stroke="#ffffff" stroke-opacity=".08" stroke-width="{px(1)}"/>'
+                )
+        t.append(f'<rect x="{W * .03}" y="{D * .02}" width="{W * .94}" height="{D * .96}" rx="{px(4)}" fill="none" stroke="{TEAL}" stroke-opacity=".35" stroke-width="{px(1.2)}"/>')
+        out.append(f'<g transform="{b.top_tf}">{"".join(t)}</g>')
+        return "".join(out)
+
+    return render(build, b.bbox())
+
+
+def uc_cluster(W, D, pack_h, n, box_h):
+    H = pack_h * n + box_h
+    b = Box(W, D, H)
+
+    def build(px):
+        out = [box_faces(b, px, front="#070B14", side="#0B1220", top="#26354F")]
+        f = [
+            # high-voltage box on top
+            f'<rect x="{W * .03}" y="{H * .01}" width="{W * .94}" height="{box_h * .92}" rx="{px(3)}" fill="#1A2232" stroke="#ffffff" stroke-opacity=".08" stroke-width="{px(1)}"/>',
+            uc_wordmark(W * .07, box_h * .5, W * .34),
+            f'<rect x="{W * .5}" y="{box_h * .3}" width="{W * .12}" height="{box_h * .38}" rx="{px(3)}" fill="#0A0F1A"/>',
+            f'<circle cx="{W * .56}" cy="{box_h * .49}" r="{box_h * .12}" fill="none" stroke="{AMBER}" stroke-width="{box_h * .04}"/>',
+            f'<circle cx="{W * .72}" cy="{box_h * .49}" r="{box_h * .07}" fill="{TEAL}" filter="url(#glow)"/>',
+            f'<rect x="{W * .8}" y="{box_h * .3}" width="{W * .12}" height="{box_h * .38}" rx="{px(2)}" fill="#0A0F1A" stroke="#4A5A76" stroke-width="{px(1)}"/>',
+        ]
+        for i in range(n):
+            f.append(uc_pack_front(W, pack_h, px, y=box_h + pack_h * i, label=False))
+        out.append(f'<g transform="{b.front_tf}">{"".join(f)}</g>')
+        return "".join(out)
+
+    return render(build, b.bbox())
+
+
+def uc_container(W, D, H):
+    b = Box(W, D, H)
+
+    def build(px):
+        out = [box_faces(b, px, front="#E9EDF3", side="#B9C2D0", top="#F6F8FB")]
+        f = []
+        # corrugation
+        for i in range(60):
+            x = W * (i + .5) / 60
+            f.append(f'<rect x="{x}" y="0" width="{W * .006}" height="{H}" fill="#C9D1DC"/>')
+        # door pairs
+        for d in range(4):
+            x0 = W * (.08 + d * .225)
+            f.append(f'<rect x="{x0}" y="{H * .1}" width="{W * .19}" height="{H * .8}" fill="#E1E6EE" stroke="#9AA6B8" stroke-width="{px(1.2)}"/>')
+            f.append(f'<line x1="{x0 + W * .095}" y1="{H * .1}" x2="{x0 + W * .095}" y2="{H * .9}" stroke="#9AA6B8" stroke-width="{px(1.2)}"/>')
+            for k in (.03, .07, .12, .16):
+                f.append(f'<rect x="{x0 + W * k}" y="{H * .12}" width="{W * .004}" height="{H * .76}" fill="#8995A9"/>')
+        # brand band
+        f += [
+            f'<rect x="0" y="{H * .02}" width="{W}" height="{H * .06}" fill="#0B1220"/>',
+            f'<rect x="0" y="{H * .08}" width="{W}" height="{H * .012}" fill="url(#gTeal)"/>',
+            uc_wordmark(W * .03, H * .05, W * .18),
+            f'<path d="M{W * .93} {H * .03} l{W * .012} {H * .04} h-{W * .024} Z" fill="{AMBER}"/>',
+            f'<rect x="0" y="{H * .955}" width="{W}" height="{H * .045}" fill="#1A2436"/>',
+        ]
+        out.append(f'<g transform="{b.front_tf}">{"".join(f)}</g>')
+        s = [f'<rect x="0" y="{H * .955}" width="{D}" height="{H * .045}" fill="#121A29"/>',
+             f'<rect x="0" y="{H * .02}" width="{D}" height="{H * .06}" fill="#0B1220"/>']
+        for i in range(2):
+            s.append(f'<rect x="{D * (.12 + i * .45)}" y="{H * .2}" width="{D * .3}" height="{H * .3}" rx="{px(3)}" fill="#8995A9"/>')
+            s.append(f'<circle cx="{D * (.27 + i * .45)}" cy="{H * .35}" r="{H * .11}" fill="#5A6578"/>')
+        s.append(f'<rect x="{D * .3}" y="{H * .62}" width="{D * .4}" height="{H * .22}" rx="{px(3)}" fill="#AAB4C3"/>')
+        out.append(f'<g transform="{b.side_tf}">{"".join(s)}</g>')
+        t = [f'<rect x="{W * .02}" y="{D * .05}" width="{W * .96}" height="{D * .9}" fill="none" stroke="#C9D1DC" stroke-width="{px(1)}"/>']
+        out.append(f'<g transform="{b.top_tf}">{"".join(t)}</g>')
+        return "".join(out)
+
+    return render(build, b.bbox())
+
+
 PRODUCTS = {
+    "ultracap-pack": lambda: uc_pack(710, 1000, 200),
+    "ultracap-cluster": lambda: uc_cluster(710, 1000, 200, 4, 240),
+    "ultracap-container": lambda: uc_container(6058, 2438, 2896),
     "nx-p160": lambda: prismatic(173.7, 71.7, 207.2, "NX-P160", "3.0V · 160Ah"),
     "nx-p210": lambda: prismatic(173.7, 86.0, 207.2, "NX-P210", "3.1V · 210Ah"),
     "nx-p50": lambda: prismatic(148.0, 27.0, 129.0, "NX-P50", "3.0V · 50Ah"),

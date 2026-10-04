@@ -211,7 +211,8 @@
       var interests = data.getAll("interest");
       data.delete("interest");
       data.set("interest", interests.join(", ") || "Not specified");
-      data.set("subject", "Naxion enquiry: " + (data.get("product") || "General") + " (" + (data.get("company") || data.get("name")) + ")");
+      var topic = data.get("product") || (interests.indexOf("UltraCap") > -1 ? "UltraCap" : "General");
+      data.set("subject", "Naxion enquiry: " + topic + " (" + (data.get("company") || data.get("name")) + ")");
 
       btn.disabled = true;
       var label = btn.innerHTML;
